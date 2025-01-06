@@ -6,7 +6,10 @@ const PORT = process.env.PORT || 7000;
 import Routes from './routes/index.js'
 
 // * Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

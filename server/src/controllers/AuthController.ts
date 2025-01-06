@@ -13,6 +13,7 @@ class AuthController {
   static async login(req: Request, res: Response) {
     try {
       const body: LoginPayloadType = req.body;
+      console.log(body)
       let findUser = await prisma.user.findUnique({
         where: {
           email: body.email,
@@ -42,7 +43,7 @@ class AuthController {
     } catch (error) {
       return res
         .status(500)
-        .json({ message: "Something went wrong.please try again!" });
+        .json({ message: "Something went wrong.please try again!", error: `${error}` });
     }
   }
 }

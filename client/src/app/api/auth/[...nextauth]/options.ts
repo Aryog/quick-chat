@@ -22,14 +22,10 @@ export const authOptions: AuthOptions = {
 		signIn: "/",
 	},
 	callbacks: {
-		async signIn({
-			user,
-			account,
-		}: {
-			user: CustomUser;
-			account: Account | null;
-		}) {
+		async signIn({ user, account }: { user: CustomUser; account: Account | null }) {
 			try {
+				console.log('Attempting to connect to:', LOGIN_URL);
+
 				const payload = {
 					email: user.email!,
 					name: user.name!,
@@ -37,18 +33,54 @@ export const authOptions: AuthOptions = {
 					provider: account?.provider!,
 					image: user?.image,
 				};
-				const { data } = await axios.post(LOGIN_URL, payload);
 
-				user.id = data?.user?.id?.toString();
-				user.token = data?.user?.token;
-				return true;
-			} catch (error) {
-				if (error instanceof AxiosError) {
-					return redirect(`/auth/error?message=${error.message}`);
+				console.log('Sending payload:', payload);
+
+				const { data } = await axios.post(LOGIN_URL, {
+					...payload,
+				}, {
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					// Add timeout to catch connection issues
+					timeout: 5000,
+				});
+
+				console.log('Response received:', data);
+
+				if (!data?.user?.id) {
+					console.error('Invalid response structure:', data);
+					throw new Error('Invalid response from login API');
 				}
-				return redirect(
-					`/auth/error?message=Something went wrong.please try again!`
-				);
+
+				user.id = data.user.id.toString();
+				user.token = data.user.token;
+				return true;
+
+			} catch (error) {
+				console.error('Login error:', {
+					url: LOGIN_URL,
+					error: error instanceof AxiosError ? {
+						message: error.message,
+						response: error.response?.data,
+						status: error.response?.status,
+						config: {
+							url: error.config?.url,
+							method: error.config?.method,
+						}
+					} : error
+				});
+
+				if (error instanceof AxiosError && error.code === 'ECONNREFUSED') {
+					throw new Error('Unable to connect to authentication server');
+				}
+
+				if (error instanceof AxiosError) {
+					const errorMessage = error.response?.data?.message || error.message;
+					throw new Error(`Login failed: ${errorMessage}`);
+				}
+
+				throw new Error("Something went wrong. Please try again!");
 			}
 		},
 
@@ -62,11 +94,9 @@ export const authOptions: AuthOptions = {
 		async session({
 			session,
 			token,
-			user,
 		}: {
 			session: CustomSession;
 			token: JWT;
-			user: User;
 		}) {
 			session.user = token.user as CustomUser;
 			return session;
