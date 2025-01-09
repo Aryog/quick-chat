@@ -45,6 +45,7 @@ class ChatGroupController {
     try {
       const body = req.body;
       const user = req.user;
+      console.log(body)
       await prisma.chatGroup.create({
         data: {
           title: body?.title,
@@ -57,7 +58,7 @@ class ChatGroupController {
     } catch (error) {
       return res
         .status(500)
-        .json({ message: "Something went wrong.please try again!" });
+        .json({ message: "Something went wrong.please try again!", error });
     }
   }
 

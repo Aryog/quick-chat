@@ -2,7 +2,6 @@ import { Router } from "express";
 import AuthController from "../controllers/AuthController.js";
 import ChatGroupController from "../controllers/ChatGroupController.js";
 import authMiddleware from "../middlewares/AuthMiddleware.js";
-
 const router = Router();
 
 router.post('/auth/login', AuthController.login)
