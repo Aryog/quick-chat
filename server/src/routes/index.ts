@@ -1,6 +1,8 @@
 import { Router } from "express";
 import AuthController from "../controllers/AuthController.js";
 import ChatGroupController from "../controllers/ChatGroupController.js";
+import ChatGroupUserController from "../controllers/ChatGroupUserController.js";
+
 import authMiddleware from "../middlewares/AuthMiddleware.js";
 const router = Router();
 
@@ -11,6 +13,10 @@ router.get("/chat-group", authMiddleware, ChatGroupController.index);
 router.get("/chat-group/:id", ChatGroupController.show);
 router.post("/chat-group", authMiddleware, ChatGroupController.store);
 router.put("/chat-group/:id", authMiddleware, ChatGroupController.update);
+
+router.get("/chat-group-user", ChatGroupUserController.index);
+router.post("/chat-group/:id", ChatGroupUserController.store);
+
 router.delete("/chat-group/:id", authMiddleware, ChatGroupController.destroy);
 
 export default router;
