@@ -18,14 +18,10 @@ export function setupSocket(io: Server) {
     // * Join the room
     socket.join(socket.room);
 
-    // socket.on("message", async (data) => {
-    //   try {
-    //     await produceMessage("chats", data);
-    //   } catch (error) {
-    //     console.log("The kafka produce error is", error);
-    //   }
-    //   socket.to(socket.room).emit("message", data);
-    // });
+    socket.on("message", async (data) => {
+      console.log("Server side message", data);
+      socket.emit("message", data);
+    });
 
     socket.on("disconnect", () => {
       console.log("A user disconnected:", socket.id);

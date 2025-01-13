@@ -42,8 +42,6 @@ export async function fetchChatGroupUsers(id: string) {
 		cache: "no-cache",
 	});
 
-	console.log(await res.json())
-
 	if (!res.ok) {
 		// This will activate the closest `error.js` Error Boundary
 		throw new Error("Failed to fetch data");
