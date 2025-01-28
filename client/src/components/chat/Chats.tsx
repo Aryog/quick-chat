@@ -44,7 +44,6 @@ export default function Chats({
 	}, []);
 
 	const handleSubmit = (event: React.FormEvent) => {
-		console.log("times")
 		event.preventDefault();
 
 		if (!message.trim()) return;
