@@ -25,19 +25,29 @@ export default function Chats({
 		};
 		return socket.connect();
 	}, []);
+
 	useEffect(() => {
-		socket.on("message", (data: MessageType) => {
-			console.log("The message is", data);
-			setMessages((prevMessages) => [...prevMessages, data]);
+		const handleMessage = (data: MessageType) => {
+			setMessages((prevMessages) => {
+				if (prevMessages.some((msg) => msg.id === data.id)) return prevMessages;
+				return [...prevMessages, data];
+			});
 			scrollToBottom();
-		});
+		};
+
+		socket.off("message", handleMessage);
+		socket.on("message", handleMessage);
 
 		return () => {
-			socket.close();
+			socket.off("message", handleMessage);
 		};
 	}, []);
+
 	const handleSubmit = (event: React.FormEvent) => {
+		console.log("times")
 		event.preventDefault();
+
+		if (!message.trim()) return;
 
 		const payload: MessageType = {
 			id: uuidv4(),

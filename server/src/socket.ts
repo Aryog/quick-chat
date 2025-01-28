@@ -17,6 +17,7 @@ export function setupSocket(io: Server) {
   io.on("connection", (socket: CustomSocket) => {
     // * Join the room
     socket.join(socket.room);
+    console.log("A user connected", socket.id);
 
     socket.on("message", async (data) => {
       console.log("Server side message", data);
