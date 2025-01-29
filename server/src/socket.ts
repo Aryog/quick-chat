@@ -1,4 +1,5 @@
 import { Server, Socket } from "socket.io";
+import prisma from "./config/db.config.js";
 // import { produceMessage } from "./helper.js";
 
 interface CustomSocket extends Socket {
@@ -21,7 +22,10 @@ export function setupSocket(io: Server) {
 
     socket.on("message", async (data) => {
       console.log("Server side message", data);
-      socket.emit("message", data);
+      await prisma.chats.create({
+        data: data
+      });
+      socket.to(socket.room).emit("message", data);
     });
 
     socket.on("disconnect", () => {
