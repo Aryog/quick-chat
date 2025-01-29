@@ -10,6 +10,7 @@ import { setupSocket } from "./socket.js";
 import { createAdapter } from "@socket.io/redis-streams-adapter";
 import redis from "./config/redis.config.js";
 import { instrument } from "@socket.io/admin-ui";
+import { initializeKafka } from "./config/kafka.config.js";
 
 const server = createServer(app);
 
@@ -37,6 +38,12 @@ app.use(express.urlencoded({ extended: false }));
 app.get("/", (req: Request, res: Response) => {
   return res.send("It's working 🙌");
 });
+
+// Kafka Configuration
+if (!process.env.KAFKA_TOPIC) {
+  throw new Error("KAFKA_TOPIC environment variable is not defined");
+}
+initializeKafka(process.env.KAFKA_TOPIC);
 
 app.use('/api', Routes)
 
