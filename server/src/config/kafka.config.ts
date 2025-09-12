@@ -48,24 +48,46 @@ export const produceMessage = async (topic: string, message: any) => {
   }
 };
 
-// Consumer function
+// Enhanced Consumer function with better error handling and validation
 export const consumeMessages = async (topic: string) => {
   try {
     await consumer.subscribe({ topic: topic, fromBeginning: true });
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         try {
-          const data = JSON.parse(message.value?.toString() || '');
-          console.log({
-            partition,
-            offset: message.offset,
-            value: data,
-          });
+          const messageValue = message.value?.toString();
+          if (!messageValue) {
+            console.warn('Received empty message, skipping...');
+            return;
+          }
+
+          const data = JSON.parse(messageValue);
+          console.log(`Processing message from partition ${partition}, offset ${message.offset}:`, data);
+
+          // Validate required fields before database insertion
+          if (!data.group_id || !data.name) {
+            console.error('Invalid message format, missing required fields:', data);
+            return;
+          }
+
+          // Ensure proper data structure for Prisma
+          const chatData = {
+            id: data.id || undefined,
+            group_id: data.group_id,
+            message: data.message || null,
+            name: data.name,
+            file: data.file || null,
+            created_at: data.created_at ? new Date(data.created_at) : new Date()
+          };
+
           await prisma.chats.create({
-            data: data,
+            data: chatData,
           });
-        } catch (error) {
-          console.error('Error processing message:', error);
+
+          console.log(`Message persisted to database for group ${data.group_id}`);
+        } catch (parseError) {
+          console.error('Error parsing or processing message:', parseError);
+          console.error('Raw message:', message.value?.toString());
         }
       },
     });

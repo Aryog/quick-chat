@@ -14,7 +14,7 @@ services:
       retries: 3
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.4.0
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -44,6 +44,57 @@ services:
     volumes:
       - redis_data:/data
     container_name: redis-stack
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  chat-server-1:
+    build: ./server
+    ports:
+      - "7001:7000"
+    environment:
+      - NODE_ENV=development
+      - PORT=7000
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:29092
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+
+  chat-server-2:
+    build: ./server
+    ports:
+      - "7002:7000"
+    environment:
+      - NODE_ENV=development
+      - PORT=7000
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:29092
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - chat-server-1
+      - chat-server-2
 
 volumes:
   redis_data:
