@@ -50,19 +50,34 @@ services:
       timeout: 10s
       retries: 3
 
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: quickchat
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d quickchat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   chat-server-1:
     build: ./server
     ports:
       - "7001:7000"
-    environment:
-      - NODE_ENV=development
-      - PORT=7000
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=kafka:29092
+    env_file:
+      - ./server/.env
     depends_on:
       kafka:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     volumes:
       - ./server:/app
@@ -72,15 +87,14 @@ services:
     build: ./server
     ports:
       - "7002:7000"
-    environment:
-      - NODE_ENV=development
-      - PORT=7000
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=kafka:29092
+    env_file:
+      - ./server/.env
     depends_on:
       kafka:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     volumes:
       - ./server:/app
@@ -98,3 +112,4 @@ services:
 
 volumes:
   redis_data:
+  postgres_data:

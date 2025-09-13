@@ -22,9 +22,11 @@ export default function Chats({
 		const socket = getSocket();
 		socket.auth = {
 			room: group.id,
+			userId: chatUser?.id,
+			userName: chatUser?.name,
 		};
 		return socket.connect();
-	}, []);
+	}, [chatUser]);
 
 	useEffect(() => {
 		const handleMessage = (data: MessageType) => {

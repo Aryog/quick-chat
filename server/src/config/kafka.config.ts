@@ -3,9 +3,11 @@ import { setTimeout } from 'timers/promises';
 import prisma from "./db.config.js";
 
 // Create Kafka instance
+const brokers = process.env.KAFKA_BROKERS ? process.env.KAFKA_BROKERS.split(',') : ['kafka:29092'];
+
 const kafka = new Kafka({
   clientId: 'chat-app',
-  brokers: ['localhost:9092'],
+  brokers: brokers,
   retry: {
     initialRetryTime: 100,
     retries: 8

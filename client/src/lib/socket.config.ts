@@ -4,7 +4,14 @@ import Env from './env';
 let socket: Socket
 export const getSocket = (): Socket => {
   if (!socket) {
-    socket = io(Env.BACKEND_URL, { autoConnect: false });
+    socket = io(Env.BACKEND_URL, { 
+      autoConnect: false,
+      transports: ['websocket', 'polling'],
+      upgrade: true,
+      rememberUpgrade: true,
+      timeout: 20000,
+      forceNew: false
+    });
   }
   return socket;
 }
